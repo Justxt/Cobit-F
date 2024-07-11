@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const Table = ({ setResult }) => {
   const [data, setData] = useState({
     headers: [],
     rows: []
   });
+  const router = useRouter();
 
   useEffect(() => {
     const fetchHeaders = async () => {
@@ -69,7 +71,12 @@ const Table = ({ setResult }) => {
   };
 
   const handleNext = () => {
-    setResult(data);
+    // Convertimos los resultados a JSON y los pasamos como query param a la página de resultados
+    const results = JSON.stringify(data);
+    router.push({
+      pathname: '/ResultPage',
+      query: { results },
+    });
   };
 
   const handleClearRow = rowIndex => {
@@ -81,7 +88,6 @@ const Table = ({ setResult }) => {
   const isHeaderP = colIndex => {
     return data.rows.some(row => row.values[colIndex] === "P");
   };
-  
 
   return (
     <div className="p-4">
@@ -92,7 +98,7 @@ const Table = ({ setResult }) => {
             {data.headers.map((header, index) => (
               <th
                 key={header.id}
-                className={`border border-gray-300 px-1 py-2 ${
+                className={`border border-gray-300 px-1 py-2 text-xs ${
                   isHeaderP(index) ? "bg-blue-500 text-white" : ""
                 }`}
               >
@@ -104,14 +110,14 @@ const Table = ({ setResult }) => {
         <tbody>
           {data.rows.map((row, rowIndex) => (
             <tr key={row.id}>
-              <td className="border border-gray-300 px-4 py-2">
+              <td className="border border-gray-300 px-4 py-2 text-xs">
                 {row.label}
               </td>
               {row.values.map((value, colIndex) => (
                 <td
                   key={colIndex}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
-                  className={`border border-gray-300 px-4 py-2 cursor-pointer ${
+                  className={`border border-gray-300 px-4 py-2 cursor-pointer text-xs ${
                     value === "P" ? "bg-blue-500 text-white" : value === "S" ? "bg-gray-400 text-white" : ""
                   }`}
                 >

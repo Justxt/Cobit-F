@@ -60,7 +60,7 @@ export default function Register() {
       if (localStorage.getItem("role") === "admin") {
         router.push("/adminpage");
       } else {
-        router.push("/au");
+        router.push("/userpage");
       }
     }
   }, [router]);

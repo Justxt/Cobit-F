@@ -2,11 +2,11 @@
 import React from 'react'
 import Table from '../components/Table'
 
-const Au = () => {
+const UserPage = () => {
   return (
     <Table />
   )
 }
 
-export default Au
+export default UserPage
 
