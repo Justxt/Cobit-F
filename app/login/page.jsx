@@ -12,42 +12,55 @@ export default function Login() {
   const [loginPassword, setLoginPassword] = useState("");
   const [error, setError] = useState(null);
 
+  const [userData, setUserData] = useState(null); // aqui se crea el estado para el usuario
+
   const getLoginDetails = async () => {
-  try {
-    const response = await fetch("https://localhost:7092/api/Users/login", {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-      },
-      body: JSON.stringify({
-        cedula: loginCedula,
-        password: loginPassword,
-      }),
-    });
+    try {
+      const response = await fetch("https://localhost:7087/login", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          cedula: loginCedula,
+          password: loginPassword,
+        }),
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
+      if (response.ok) {
+        console.log("Login exitoso");
+        const data = await response.json();
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", data.role); // Almacenar el rol
 
-      // Redirigir según el rol
-      if (data.role === "admin") {
-        router.push("/admin"); // Redirige a la página de administrador
+        const userRole = data.role.trim().toLowerCase();
+        if (userRole === "user") {
+          router.push("/au");
+        } else {
+          router.push("/adminpage");
+        }
       } else {
-        router.push("/user"); // Redirige a la página de usuario
-      }      
-    } else {
-      const errorMessage = await response.text();
-      setError(errorMessage);
+        const errorMessage = await response.text();
+        console.error("Error al loguearse: " + errorMessage);
+        setError("Cedula o contraseña incorrecta!");
+      }
+    } catch (error) {
+      console.error("Error al hacer la solicitud: " + error.message);
+      setError("Error al hacer la solicitud: " + error.message);
     }
-  } catch (error) {
-    setError("Error al hacer la solicitud: " + error.message);
-  }
-};
-
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-  }, [router]);
+    if (token) {
+      const role = localStorage.getItem("role"); // Obtener el rol del localStorage
+      if (role === "admin") {
+        router.push("/adminpage");
+      } else {
+        router.push("/au");
+      }
+    }
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-purple-900">

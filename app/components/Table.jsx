@@ -1,118 +1,52 @@
 'use client'
 
-import React, { useState } from "react";
-
-const initialData = {
-  headers: [
-    { id: "EG01", label: "Portafolio de productos y servicios competitivos" },
-    { id: "EG02", label: "Gestión de riesgo de negocio" },
-    { id: "EG03", label: "Cumplimiento con las leyes y regulaciones externas" },
-    { id: "EG04", label: "Calidad de la información financiera" },
-    { id: "EG05", label: "Cultura de servicio orientada al cliente" },
-    {
-      id: "EG06",
-      label: "Continuidad y disponibilidad del servicio del negocio",
-    },
-    { id: "EG07", label: "Calidad de la información sobre gestión" },
-    {
-      id: "EG08",
-      label:
-        "Optimización de la funcionalidad de procesos internos del negocio",
-    },
-    { id: "EG09", label: "Optimización de costes de los procesos del negocio" },
-    {
-      id: "EG10",
-      label: "Habilidades, motivación y productividad del personal",
-    },
-    { id: "EG11", label: "Cumplimiento de las políticas internas" },
-    { id: "EG12", label: "Gestión de programas de transformación digital" },
-    { id: "EG13", label: "Innovación de productos y negocios" },
-  ],
-  rows: [
-    {
-      id: "AG01",
-      label:
-        "Cumplimiento y soporte de I&T para el cumplimiento empresarial con las leyes y regulaciones externas",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG02",
-      label: "Gestión de riesgo relacionado con I&T",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG03",
-      label:
-        "Beneficios obtenidos del portafolio de inversiones y servicios relacionados con I&T",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG04",
-      label:
-        "Calidad de la informaci6n financiera relacionada con la tecnologia",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG05",
-      label:
-        "Prestacion de servicios de I&T conforme a los requisitos del negocio",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG06",
-      label:
-        "Agilidad para convertir los requisitos del negocio en soluciones operativas",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG07",
-      label:
-        "Seguridad de la informacion, infraestructura de procesamiento, aplicaciones y privacidad",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG08",
-      label:
-        "Habilitar y dar soporte a procesos de negocio mediante Ia integracion de aplicaciones y tecnologia",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG09",
-      label:
-        "Ejecucion de programas dentro del plazo, sin exceder eI presupuesto, y que cumplen con los requisitos y eståndares de calidad",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG010",
-      label:
-        "Calidad de la informacion sobre gestion de I&T",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG11",
-      label:
-        "Cumplimiento de I&T con las politicas internas",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG12",
-      label:
-        "Personal competente y motivado con un entendimiento mutuo de la tecnologia y el negocio",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-    {
-      id: "AG013",
-      label:
-        "Conocimiento, experiencia e iniciativas para la innovacion empresarial",
-      values: ["", "", "", "", "", "", "", "", "", "", "", "", ""],
-    },
-
-    // Añadir el resto de filas según sea necesario
-  ],
-};
+import React, { useState, useEffect } from "react";
 
 const Table = ({ setResult }) => {
-  const [data, setData] = useState(initialData);
+  const [data, setData] = useState({
+    headers: [],
+    rows: []
+  });
+
+  useEffect(() => {
+    const fetchHeaders = async () => {
+      try {
+        const response = await fetch("https://localhost:7087/api/EDMModels");
+        if (!response.ok) {
+          throw new Error("Error al obtener los headers");
+        }
+        const headersData = await response.json();
+        const headers = headersData.map(item => ({
+          id: item.codeText,
+          label: item.text
+        }));
+        setData(prevState => ({ ...prevState, headers }));
+      } catch (error) {
+        console.error("Error fetching EDMModels:", error);
+      }
+    };
+
+    const fetchRows = async () => {
+      try {
+        const response = await fetch("https://localhost:7087/api/AGModels");
+        if (!response.ok) {
+          throw new Error("Error al obtener los rows");
+        }
+        const rowsData = await response.json();
+        const rows = rowsData.map(item => ({
+          id: item.codeText,
+          label: item.text,
+          values: new Array(data.headers.length).fill("")
+        }));
+        setData(prevState => ({ ...prevState, rows }));
+      } catch (error) {
+        console.error("Error fetching AGModels:", error);
+      }
+    };
+
+    fetchHeaders();
+    fetchRows();
+  }, [data.headers.length]);
 
   const handleCellClick = (rowIndex, colIndex) => {
     const newData = { ...data };
@@ -125,11 +59,11 @@ const Table = ({ setResult }) => {
 
   const handleReset = () => {
     const resetData = {
-      ...initialData,
-      rows: initialData.rows.map((row) => ({
+      headers: data.headers,
+      rows: data.rows.map(row => ({
         ...row,
-        values: row.values.map(() => ""),
-      })),
+        values: new Array(data.headers.length).fill("")
+      }))
     };
     setData(resetData);
   };
@@ -138,11 +72,16 @@ const Table = ({ setResult }) => {
     setResult(data);
   };
 
-  const handleClearRow = (rowIndex) => {
+  const handleClearRow = rowIndex => {
     const newData = { ...data };
     newData.rows[rowIndex].values = new Array(newData.headers.length).fill("");
     setData(newData);
   };
+
+  const isHeaderP = colIndex => {
+    return data.rows.some(row => row.values[colIndex] === "P");
+  };
+  
 
   return (
     <div className="p-4">
@@ -151,7 +90,12 @@ const Table = ({ setResult }) => {
           <tr>
             <th className="border border-gray-300 px-4 py-2"></th>
             {data.headers.map((header, index) => (
-              <th key={header.id} className="border border-gray-300 px-1 py-2">
+              <th
+                key={header.id}
+                className={`border border-gray-300 px-1 py-2 ${
+                  isHeaderP(index) ? "bg-blue-500 text-white" : ""
+                }`}
+              >
                 {header.label}
               </th>
             ))}
@@ -160,25 +104,23 @@ const Table = ({ setResult }) => {
         <tbody>
           {data.rows.map((row, rowIndex) => (
             <tr key={row.id}>
-              <td className="border border-gray-300 px-4 py-2">{row.label}</td>
+              <td className="border border-gray-300 px-4 py-2">
+                {row.label}
+              </td>
               {row.values.map((value, colIndex) => (
                 <td
                   key={colIndex}
                   onClick={() => handleCellClick(rowIndex, colIndex)}
                   className={`border border-gray-300 px-4 py-2 cursor-pointer ${
-                    value === "P"
-                      ? "bg-blue-500 text-white"
-                      : value === "S"
-                      ? "bg-gray-600 text-white"
-                      : ""
+                    value === "P" ? "bg-blue-500 text-white" : value === "S" ? "bg-gray-400 text-white" : ""
                   }`}
                 >
                   {value}
                 </td>
               ))}
               <td>
-                {row.values.filter((val) => val === "P" || val === "S").length >
-                  2 && (
+                {row.values.filter(val => val === "P" || val === "S").length >
+                  0 && (
                   <button
                     className="bg-red-500 text-white py-1 px-3 rounded-lg"
                     onClick={() => handleClearRow(rowIndex)}

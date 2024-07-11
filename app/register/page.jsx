@@ -25,7 +25,7 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch("https://localhost:7092/api/Users/register", {
+      const response = await fetch("https://localhost:7087/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +57,11 @@ export default function Register() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      router.push("/admin");
+      if (localStorage.getItem("role") === "admin") {
+        router.push("/adminpage");
+      } else {
+        router.push("/au");
+      }
     }
   }, [router]);
 
